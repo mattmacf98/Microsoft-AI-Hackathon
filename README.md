@@ -17,3 +17,7 @@ az deployment group create --resource-group mongo-devguide-rg --template-file az
 
 ## PHASE 3: Playing with Cosmos DB
 In this section we just explored some common API calls to make to Cosmos DB using the azure SDK, if you are familiar with any noSQL cloud database (like firebase or DDB) you could probably just skip this
+
+
+## PHASE 4: Bulk loading
+In this section we updated our Cosmos db app to do all bulk operations
