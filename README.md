@@ -14,3 +14,6 @@ az group create --name mongo-devguide-rg --location eastus
 before I actually deployed the template they gave me, Azure has not made OpenAI generally available and I don't have an edu email to request access. The hackathon organizers provided an open AI endpoint to use so I just commented out the OpenAI parts
 
 az deployment group create --resource-group mongo-devguide-rg --template-file azuredeploy.bicep --parameters azuredeploy.parameters.json
+
+## PHASE 3: Playing with Cosmos DB
+In this section we just explored some common API calls to make to Cosmos DB using the azure SDK, if you are familiar with any noSQL cloud database (like firebase or DDB) you could probably just skip this
