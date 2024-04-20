@@ -1,0 +1,17 @@
+{
+  "name": "vectorsearch",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "mongodb": "6.3.0",
+    "dotenv": "16.4.4",
+    "@azure/openai": "1.0.0-beta.11"
+  },
+  "author": "",
+  "license": "ISC"
+}

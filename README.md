@@ -21,3 +21,7 @@ In this section we just explored some common API calls to make to Cosmos DB usin
 
 ## PHASE 4: Bulk loading
 In this section we updated our Cosmos db app to do all bulk operations
+
+
+## PHASE 5: Building a RAG
+In this section we combine our database inserting skills and OpenAI calling to generate a text embedding vector for our collections, then we demonstrate how we can use that index to do simple cosine similarity search but also use the vector indexes to plug into an OpenAi chat completion to give our chat app better context when answering the questions
