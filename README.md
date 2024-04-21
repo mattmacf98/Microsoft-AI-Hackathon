@@ -25,3 +25,7 @@ In this section we updated our Cosmos db app to do all bulk operations
 
 ## PHASE 5: Building a RAG
 In this section we combine our database inserting skills and OpenAI calling to generate a text embedding vector for our collections, then we demonstrate how we can use that index to do simple cosine similarity search but also use the vector indexes to plug into an OpenAi chat completion to give our chat app better context when answering the questions
+
+
+## PHASE 6: LangChain
+In this section we rebuilt our similarity search and RAG system using langchain. I had to make my own custom embedding class and deviated from the ChatModel class provided by the hackathon demo, since the library was not set up to use an openAI endpoint and was requiring an instance name (which I did not have). Once we completed the RAG, we used langchain to build a very cool AI agent with tools to query databases and plan its approach based on the query it received
