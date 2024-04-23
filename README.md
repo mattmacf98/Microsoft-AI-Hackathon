@@ -29,3 +29,7 @@ In this section we combine our database inserting skills and OpenAI calling to g
 
 ## PHASE 6: LangChain
 In this section we rebuilt our similarity search and RAG system using langchain. I had to make my own custom embedding class and deviated from the ChatModel class provided by the hackathon demo, since the library was not set up to use an openAI endpoint and was requiring an instance name (which I did not have). Once we completed the RAG, we used langchain to build a very cool AI agent with tools to query databases and plan its approach based on the query it received
+
+
+## PHASE 7: Backend
+In this section, we encapsulated our agent in a class and created a swagger api to create two endpoints: one GET at root which serves as somewhat of a health check endpoint, and one at /ai POST which will take a session id (if we want stateful communication) and a message to send the agent (NOTE: usually an anti-pattern, APIs should be stateless any state should be stored in a redis cluster or passed in from user ). I did have a lot of issues q=with this stage, Azure container registry UI never showed that my image was present so I needed to run some cli to confirm, also I realized my initial deployment had failed to deploy the backend app env and container due to an issue with worker profiles, I and to go and re-deploy. At the end of this, we have our backend API running on the cloud

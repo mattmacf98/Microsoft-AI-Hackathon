@@ -259,14 +259,7 @@ resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' 
         sharedKey: logAnalytics.listKeys().primarySharedKey
       }
     }
-    workloadProfiles: [
-      {
-        name: 'Warm'
-        minimumCount: 1
-        maximumCount: 10
-        workloadProfileType: 'E4'
-      }
-    ]
+    workloadProfiles: []
     infrastructureResourceGroup: 'ME_${resourceGroup().name}'
   }
 }
