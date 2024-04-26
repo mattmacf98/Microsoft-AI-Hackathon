@@ -85,9 +85,9 @@ export const ChatPane = () => {
                 {messages.current.map((message, index) => {
                     switch (message.chatType) {
                         case ChatType.AGENT:
-                            return <AgentMessage text={message.content} key={index}/>
+                            return <AgentMessageComponent text={message.content} key={index}/>
                         case ChatType.USER:
-                            return <UserMessage text={message.content} key={index}/>
+                            return <UserMessageComponent text={message.content} key={index}/>
                         default:
                             return null;
                     }
@@ -100,7 +100,7 @@ export const ChatPane = () => {
     )
 }
 
-export const AgentMessage = (props: {text:string}) => {
+export const AgentMessageComponent = (props: {text:string}) => {
     return (
         <div className={"agent-message"}>
             <p>
@@ -110,7 +110,7 @@ export const AgentMessage = (props: {text:string}) => {
     )
 }
 
-export const UserMessage = (props: {text:string}) => {
+export const UserMessageComponent = (props: {text:string}) => {
     return (
         <div className={"user-message"}>
             <p>

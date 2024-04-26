@@ -1,8 +1,8 @@
-const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors')
 const swagger = require('./swagger');
+const AiAgent = require("./aiAgent");
 
 const PORT = process.env.PORT || 4000;
 const app = express();
@@ -11,11 +11,6 @@ app.use(cors());
 
 // values in a database rather than in-memory.
 let agentInstancesMap = new Map();
-
-const client = new OpenAIClient(
-    process.env.AZURE_OAI_ENDPOINT,
-    new AzureKeyCredential(process.env.AZURE_OAI_KEY)
-);
 
 /* Health probe endpoint. */
 /**
@@ -57,46 +52,17 @@ app.get('/', (req, res) => {
  *         description: Returns the OpenAI response.
  */
 app.post('/ai', async (req, res) => {
-    const systemMessage = `
-        You are a helpful, fun and friendly sales assistant for Cosmic Works, an online store.
-
-        Your name is Cosmo.
-
-        You are designed to answer questions about the products that Cosmic Works sells, the customers that buy them, and the sales orders that are placed by customers.
-
-        If you don't know the answer to a question, respond with "I don't know."
-        
-        You will receive follow up messages about a product a user is looking at. The information will also contain a FUNCTIONS section which you can invoke to demonstrate some product feature
-        
-        For example, a loaded product info might look like below
-        
-        
-        User has loaded our blue velvet chair, it has hand crafted wooden legs made by artisan woodworkers
-        FUNCTIONS: [show_red_variant, show_chair_legs] 
-        
-        The user may then ask: "does this come in any other colors?"       
-        
-        and your message response could look like: "Yes! we have a red variant! INVOKE: show_red_variant"
-        
-        the invocation of a function MUST match the pattern INVOKE: {function} and it MUST be at the end of your response
-    `;
-    const messages_array = [
-        {role: "system", content: systemMessage},
-    ];
+    const agent = new AiAgent();
     if (req.body.productContext !== "") {
-        messages_array.push({role: "system", content: req.body.productContext});
+        agent.addMessage({role: "system", content: req.body.productContext});
     }
-    messages_array.push({role: "user", content: req.body.prompt});
 
-    try {
-        const chatResponse = await client.getChatCompletions(
-            process.env.AZURE_OAI_DEPLOYMENT,
-            messages_array
-        );
-        res.status(200).send({message: chatResponse.choices[0].message.content})
-    } catch (e) {
-        console.error(e);
+    const agentResponse = await agent.executeAgent(req.body.prompt);
+
+    if (agentResponse === "ERROR") {
         res.status(500).send("Failed to generate completion");
+    } else {
+        res.status(200).send({message: agentResponse})
     }
 });
 
