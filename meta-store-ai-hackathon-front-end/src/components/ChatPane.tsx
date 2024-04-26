@@ -10,7 +10,10 @@ interface ChatMessage {
     content: string
 }
 
-export const ChatPane = () => {
+interface IChatPaneProps {
+    sessionId: string
+}
+export const ChatPane = (props: IChatPaneProps) => {
     const [lastMessageTime, setLastMessageTime] = useState(0);
     const messages = useRef<ChatMessage[]>([]);
     const chatMessagesRef = useRef<HTMLDivElement>(null);
@@ -41,7 +44,7 @@ export const ChatPane = () => {
         const body = {
             prompt: prompt,
             productContext: "The User has loaded a new product, here is some context: it is a red bicycle for children, it features advanced breaking and it costs $499 FUNTIONS: [show_blue_varaint, demonstrate_safe_break]",
-            session_id: "1234"
+            session_id: props.sessionId
         };
         try {
             const result = await fetch("http://localhost:4000/ai", {

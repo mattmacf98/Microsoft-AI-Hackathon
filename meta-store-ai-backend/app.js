@@ -52,7 +52,16 @@ app.get('/', (req, res) => {
  *         description: Returns the OpenAI response.
  */
 app.post('/ai', async (req, res) => {
-    const agent = new AiAgent();
+    let session_id = req.body.session_id;
+    let agent = {};
+
+    if (agentInstancesMap.has(session_id)) {
+        agent = agentInstancesMap.get(session_id);
+    } else {
+        agent = new AiAgent();
+        agentInstancesMap.set(session_id, agent);
+    }
+
     if (req.body.productContext !== "") {
         agent.addMessage({role: "system", content: req.body.productContext});
     }

@@ -23,6 +23,10 @@
     margin-bottom: 8px;
 }
 
+.chat-messages::-webkit-scrollbar {
+    width: 0;
+}
+
 .viewer-container {
     background: #ffffff;
     height: 100%;
