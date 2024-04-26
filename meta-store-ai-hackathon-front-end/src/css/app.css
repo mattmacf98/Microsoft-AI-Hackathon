@@ -1,0 +1,72 @@
+.app-container {
+    margin: 24px auto ;
+    height: 85vh;
+}
+
+.no-gutters [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+}
+
+.chat-pane-container {
+    background: #ffffff;
+    height: 100%;
+    padding: 32px;
+    border: 1px solid gray;
+    border-bottom-right-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+.chat-messages {
+    height: 80vh;
+    overflow-y: scroll;
+    margin-bottom: 8px;
+}
+
+.viewer-container {
+    background: #ffffff;
+    height: 100%;
+    width: 100%;
+    border: 1px solid gray;
+    border-right: none;
+    border-bottom-left-radius: 20px;
+    border-top-left-radius: 20px;
+}
+
+.agent-message {
+    border: 1px solid black;
+    border-radius: 10px;
+    background: aliceblue;
+    padding: 12px;
+    float: right;
+    width: 70%;
+    margin-top: 16px;
+}
+
+.user-message {
+    border: 1px solid black;
+    border-radius: 10px;
+    background: #f1ffe0;
+    padding: 12px;
+    float: left;
+    width: 70%;
+    margin-top: 16px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.styled-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    outline: none; /* Remove default outline */
+    transition: border-color 0.2s ease-in-out;
+}
+
+.styled-input:focus {
+    border-color: #007bff; /* Change border color on focus */
+}
