@@ -25,17 +25,57 @@ export const ChatPane = () => {
         if (event.key === 'Enter') {
             messages.current.push({chatType: ChatType.USER, content: event.target.value});
             setLastMessageTime(Math.random());
-            callAI()
+            callAI(event.target.value)
                 .then(res => {
-                    messages.current.push({chatType: ChatType.AGENT, content: res});
+                    if (res.functionToInvoke) {
+                        console.log(`INVOKING CUSTOM EVENT ${res.functionToInvoke}`);
+                    }
+                    messages.current.push({chatType: ChatType.AGENT, content: res.text});
                     setLastMessageTime(Math.random());
                 })
             event.target.value = "";
         }
     };
 
-    const callAI = async (): Promise<string> => {
-        return "ok"
+    const callAI = async (prompt: string): Promise<AgentMessage> => {
+        const body = {
+            prompt: prompt,
+            productContext: "The User has loaded a new product, here is some context: it is a red bicycle for children, it features advanced breaking and it costs $499 FUNTIONS: [show_blue_varaint, demonstrate_safe_break]",
+            session_id: "1234"
+        };
+        try {
+            const result = await fetch("http://localhost:4000/ai", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+            const responseJson = await result.json();
+
+            // const responseJson = {message: "Yes! We have a blue variant of this bicycle. INVOKE: show_blue_variant"}
+            // const responseJson = {message: "Ok cool"}
+            const parsedAgentMessage: AgentMessage = parseAIMessage(responseJson.message);
+            console.log(parsedAgentMessage);
+            return parsedAgentMessage;
+        } catch (e: any) {
+            console.error(e);
+            return e.toString();
+        }
+    }
+
+    interface AgentMessage {
+        text: string,
+        functionToInvoke?: string
+    }
+    const parseAIMessage = (message: string): AgentMessage => {
+        const responseParts = message.split("INVOKE:");
+        const text = responseParts[0].trim();
+        const functionToInvoke = responseParts.length > 1 ? responseParts[1].trim() : undefined;
+        return {
+            text: text,
+            functionToInvoke: functionToInvoke
+        }
     }
 
     return (
