@@ -43,7 +43,7 @@ export const ChatPane = (props: IChatPaneProps) => {
     const callAI = async (prompt: string): Promise<AgentMessage> => {
         const body = {
             prompt: prompt,
-            productContext: "The User has loaded a new product, here is some context: it is a red bicycle for children, it features advanced breaking and it costs $499 FUNTIONS: [show_blue_varaint, demonstrate_safe_break]",
+            productContext: "The User has loaded a new product with ID 123",
             session_id: props.sessionId
         };
         try {

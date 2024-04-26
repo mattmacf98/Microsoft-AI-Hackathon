@@ -1,0 +1,3 @@
+it is a red bicycle for children, it features advanced breaking and it costs $499
+
+FUNCTIONS:[show_blue_varaint, demonstrate_safe_break]

@@ -1,16 +1,29 @@
 require('dotenv').config();
-const {AzureKeyCredential, OpenAIClient} = require("@azure/openai");
+const fs = require('fs');
+const { AgentExecutor } = require("langchain/agents");
+const { OpenAIFunctionsAgentOutputParser } = require("langchain/agents/openai/output_parser");
+const { AzureChatOpenAI} = require("@langchain/openai");
+const { DynamicTool } = require("@langchain/core/tools");
+const { RunnableSequence } = require("@langchain/core/runnables");
+const { HumanMessage, AIMessage } = require("@langchain/core/messages");
+const { MessagesPlaceholder, ChatPromptTemplate } = require("@langchain/core/prompts");
+const { convertToOpenAIFunction } = require("@langchain/core/utils/function_calling");
+const { formatToOpenAIFunctionMessages } = require("langchain/agents/format_scratchpad");
 
 class AIAgent {
     constructor() {
-        this.openAIClient = new OpenAIClient(
-            process.env.AZURE_OAI_ENDPOINT,
-            new AzureKeyCredential(process.env.AZURE_OAI_KEY)
+        this.chatModel = new AzureChatOpenAI(
+            {
+                openAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+                openAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
+                openAIBasePath: process.env.AZURE_OPENAI_BASE_PATH,
+                deploymentName: process.env.AZURE_OPENAI_API_DEPLOYMENT_NAME
+            }
         );
 
         // initialize the chat history
         this.chatHistory = [];
-        this.buildAgentExecutor();
+        this.agentExecutor = this.buildAgentExecutor();
     }
 
     buildAgentExecutor() {
@@ -35,10 +48,51 @@ class AIAgent {
             
             and your message response could look like: "Yes! we have a red variant! INVOKE: show_red_variant"
             
-            the invocation of a function MUST match the pattern INVOKE: {function} and it MUST be at the end of your response
+            the invocation of a function MUST match the pattern 
+            
+            INVOKE: function name 
+            
+            And it MUST be at the end of your response
         `;
 
-        this.chatHistory.push({role: "system", content: systemMessage});
+        const productsLookupTool = new DynamicTool({
+            name: "load_product_information",
+            description: `Searches product information for a single product by its ID.
+                    Returns the product information`,
+            func: async (input) => {
+                const data = fs.readFileSync("./info.txt");
+                return data.toString();
+            }
+        });
+
+        const tools = [productsLookupTool];
+        const modelWithFunctions = this.chatModel.bind({
+            functions: tools.map((tool) => convertToOpenAIFunction(tool))
+        });
+
+        const prompt = ChatPromptTemplate.fromMessages([
+            ["system", systemMessage],
+            new MessagesPlaceholder("chat_history"),
+            ["human", "{input}"],
+            new MessagesPlaceholder("agent_scratchpad")
+        ]);
+
+        const runnableAgent = RunnableSequence.from([
+            {
+                input: (i) => i.input,
+                agent_scratchpad: (i) => formatToOpenAIFunctionMessages(i.steps),
+                chat_history: (i) => i.chat_history
+            },
+            prompt,
+            modelWithFunctions,
+            new OpenAIFunctionsAgentOutputParser()
+        ]);
+
+        return AgentExecutor.fromAgentAndTools({
+            agent: runnableAgent,
+            tools,
+            // returnIntermediateSteps: true
+        });
     }
 
     addMessage(chatHistoryMessage) {
@@ -46,14 +100,14 @@ class AIAgent {
     }
 
     async executeAgent(prompt) {
-        this.addMessage({role: "user", content: prompt});
         try {
-            const chatResponse = await this.openAIClient.getChatCompletions(
-                process.env.AZURE_OAI_DEPLOYMENT,
-                this.chatHistory
-            );
-
-            return chatResponse.choices[0].message.content;
+            const result = await this.agentExecutor.invoke({ input: prompt, chat_history: this.chatHistory });
+            this.chatHistory.push(new HumanMessage(prompt));
+            this.chatHistory.push(new AIMessage(result.output));
+            if (this.agentExecutor.returnIntermediateSteps) {
+                console.log(JSON.stringify(result.intermediateSteps, null, 2));
+            }
+            return result.output;
         } catch (e) {
             console.error(e);
             return "ERROR"

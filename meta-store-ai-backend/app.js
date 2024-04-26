@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { AIMessage } = require("@langchain/core/messages");
 const express = require('express');
 const cors = require('cors')
 const swagger = require('./swagger');
@@ -63,7 +64,7 @@ app.post('/ai', async (req, res) => {
     }
 
     if (req.body.productContext !== "") {
-        agent.addMessage({role: "system", content: req.body.productContext});
+        agent.addMessage(new AIMessage(req.body.productContext));
     }
 
     const agentResponse = await agent.executeAgent(req.body.prompt);
