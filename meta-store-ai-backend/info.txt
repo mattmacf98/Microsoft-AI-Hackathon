@@ -1,3 +1,3 @@
-it is a red bicycle for children, it features advanced breaking and it costs $499
+This is a yellow toy duck it is rubber and squishable. It is selling for $2.99 you may only call the function demo_squishing_duck
 
-FUNCTIONS:[show_blue_varaint, demonstrate_safe_break]
+FUNCTIONS:[demo_squishing_duck]

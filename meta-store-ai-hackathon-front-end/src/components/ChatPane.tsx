@@ -31,6 +31,8 @@ export const ChatPane = (props: IChatPaneProps) => {
             callAI(event.target.value)
                 .then(res => {
                     if (res.functionToExecute) {
+                        const ev = new CustomEvent(`KHR_INTERACTIVITY:${res.functionToExecute}`, { detail: {} });
+                        document.dispatchEvent(ev);
                         console.log(`INVOKING CUSTOM EVENT ${res.functionToExecute}`);
                     }
                     messages.current.push({chatType: ChatType.AGENT, content: res.message});

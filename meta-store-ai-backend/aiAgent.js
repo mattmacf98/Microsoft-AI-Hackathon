@@ -41,11 +41,12 @@ class AIAgent {
             
             For example, a loaded product info might look like below
             
-            
             User has loaded our blue velvet chair, it has hand crafted wooden legs made by artisan woodworkers
             FUNCTIONS: [show_red_variant, show_chair_legs] 
            
-           you can then use the function names in the execute_product_function to invoke a function try to execute a function if it is applicable to the query
+           you can then ONLY use the function names in the execute_product_function to invoke a function try to execute a function if it is applicable to the query
+           
+           DO NOT include any links in your responses
         `;
 
         const productsLookupTool = new DynamicTool({
@@ -60,7 +61,8 @@ class AIAgent {
 
         const executeFunctionTool = new DynamicTool({
             name: "execute_product_function",
-            description: `Executes a FUNCTION found in the product's information`,
+            description: `Executes a FUNCTION found in the product's information. you may ONLY supply function names
+            found within the FUNCTIONS array for the product`,
             func: (functionName) => {
                 this.functionToExecute = functionName;
             }

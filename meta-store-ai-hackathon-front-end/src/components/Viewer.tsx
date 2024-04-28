@@ -1,10 +1,28 @@
-import {ArcRotateCamera, Color3, Color4, Engine, HemisphericLight, MeshBuilder, Scene, Vector3} from "@babylonjs/core";
+import {
+    ArcRotateCamera, AssetContainer,
+    Color3,
+    Color4,
+    Engine,
+    HemisphericLight,
+    Scene,
+    SceneLoader,
+    Vector3
+} from "@babylonjs/core";
+import "@babylonjs/loaders/glTF";
 import "../css/app.css";
 import {useEffect, useRef} from "react";
+import {GLTFLoader} from "@babylonjs/loaders/glTF/2.0";
+import {KHR_interactivity, KHR_INTERACTIVITY_EXTENSION_NAME} from "../loaderExtensions/KHR_interactivity";
+import {BasicBehaveEngine} from "../behaviors";
+
+GLTFLoader.RegisterExtension(KHR_INTERACTIVITY_EXTENSION_NAME, (loader) => {
+    return new KHR_interactivity(loader);
+});
 
 export const Viewer = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const engineRef = useRef<Engine | null>(null);
+    const babylonEngineRef = useRef<BasicBehaveEngine | null>(null);
     const sceneRef = useRef<Scene>();
 
     useEffect(() => {
@@ -25,12 +43,15 @@ export const Viewer = () => {
         };
     }, []);
 
+    const startGraph = async (container: AssetContainer) => {
+        babylonEngineRef.current = new BasicBehaveEngine(60, sceneRef.current!);
+        babylonEngineRef.current?.refreshBehaveGraphEngine(container, sceneRef.current!);
+    }
+
     const createScene = async () => {
         // Create a scene
         sceneRef.current = new Scene(engineRef.current!);
         sceneRef.current!.clearColor = Color4.FromColor3(Color3.FromHexString("#c2d4e5"));
-
-        MeshBuilder.CreateBox("mybox");
 
         // Create a camera
         const camera = new ArcRotateCamera('camera', Math.PI / 3, Math.PI / 3, 10, Vector3.Zero(), sceneRef.current);
@@ -48,6 +69,10 @@ export const Viewer = () => {
         // Create a hemispheric light
         const light1 = new HemisphericLight("light1", new Vector3(0, 1, 0), sceneRef.current);
         light1.intensity = 1;
+
+        const container = await SceneLoader.LoadAssetContainerAsync("./SquishableDuck.glb", "", sceneRef.current, undefined, ".glb");
+        container.addAllToScene();
+        await startGraph(container);
     };
 
     return (
