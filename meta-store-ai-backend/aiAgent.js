@@ -23,6 +23,7 @@ class AIAgent {
 
         // initialize the chat history
         this.chatHistory = [];
+        this.functionToExecute = null;
         this.agentExecutor = this.buildAgentExecutor();
     }
 
@@ -43,16 +44,8 @@ class AIAgent {
             
             User has loaded our blue velvet chair, it has hand crafted wooden legs made by artisan woodworkers
             FUNCTIONS: [show_red_variant, show_chair_legs] 
-            
-            The user may then ask: "does this come in any other colors?"       
-            
-            and your message response could look like: "Yes! we have a red variant! INVOKE: show_red_variant"
-            
-            the invocation of a function MUST match the pattern 
-            
-            INVOKE: function name 
-            
-            And it MUST be at the end of your response
+           
+           you can then use the function names in the execute_product_function to invoke a function try to execute a function if it is applicable to the query
         `;
 
         const productsLookupTool = new DynamicTool({
@@ -65,7 +58,15 @@ class AIAgent {
             }
         });
 
-        const tools = [productsLookupTool];
+        const executeFunctionTool = new DynamicTool({
+            name: "execute_product_function",
+            description: `Executes a FUNCTION found in the product's information`,
+            func: (functionName) => {
+                this.functionToExecute = functionName;
+            }
+        });
+
+        const tools = [productsLookupTool, executeFunctionTool];
         const modelWithFunctions = this.chatModel.bind({
             functions: tools.map((tool) => convertToOpenAIFunction(tool))
         });
@@ -101,16 +102,17 @@ class AIAgent {
 
     async executeAgent(prompt) {
         try {
+            this.functionToExecute = null;
             const result = await this.agentExecutor.invoke({ input: prompt, chat_history: this.chatHistory });
             this.chatHistory.push(new HumanMessage(prompt));
             this.chatHistory.push(new AIMessage(result.output));
             if (this.agentExecutor.returnIntermediateSteps) {
                 console.log(JSON.stringify(result.intermediateSteps, null, 2));
             }
-            return result.output;
+            return {message: result.output, functionToExecute: this.functionToExecute};
         } catch (e) {
             console.error(e);
-            return "ERROR"
+            return {message: "ERROR", functionToExecute: null};
         }
     }
 }

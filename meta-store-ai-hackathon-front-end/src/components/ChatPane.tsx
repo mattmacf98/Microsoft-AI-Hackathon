@@ -30,10 +30,10 @@ export const ChatPane = (props: IChatPaneProps) => {
             setLastMessageTime(Math.random());
             callAI(event.target.value)
                 .then(res => {
-                    if (res.functionToInvoke) {
-                        console.log(`INVOKING CUSTOM EVENT ${res.functionToInvoke}`);
+                    if (res.functionToExecute) {
+                        console.log(`INVOKING CUSTOM EVENT ${res.functionToExecute}`);
                     }
-                    messages.current.push({chatType: ChatType.AGENT, content: res.text});
+                    messages.current.push({chatType: ChatType.AGENT, content: res.message});
                     setLastMessageTime(Math.random());
                 })
             event.target.value = "";
@@ -56,11 +56,10 @@ export const ChatPane = (props: IChatPaneProps) => {
             });
             const responseJson = await result.json();
 
-            // const responseJson = {message: "Yes! We have a blue variant of this bicycle. INVOKE: show_blue_variant"}
-            // const responseJson = {message: "Ok cool"}
-            const parsedAgentMessage: AgentMessage = parseAIMessage(responseJson.message);
-            console.log(parsedAgentMessage);
-            return parsedAgentMessage;
+            // const responseJson = {message: "Here is the blue variant of the bike you are interested in!", functionToExecute: "show_blue_variant"}
+            // const responseJson = {message: "Ok cool", functionToExecute: null}
+            console.log(responseJson);
+            return responseJson;
         } catch (e: any) {
             console.error(e);
             return e.toString();
@@ -68,17 +67,8 @@ export const ChatPane = (props: IChatPaneProps) => {
     }
 
     interface AgentMessage {
-        text: string,
-        functionToInvoke?: string
-    }
-    const parseAIMessage = (message: string): AgentMessage => {
-        const responseParts = message.split("INVOKE:");
-        const text = responseParts[0].trim();
-        const functionToInvoke = responseParts.length > 1 ? responseParts[1].trim() : undefined;
-        return {
-            text: text,
-            functionToInvoke: functionToInvoke
-        }
+        message: string,
+        functionToExecute?: string
     }
 
     return (

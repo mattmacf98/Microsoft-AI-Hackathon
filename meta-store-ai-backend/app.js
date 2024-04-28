@@ -69,10 +69,10 @@ app.post('/ai', async (req, res) => {
 
     const agentResponse = await agent.executeAgent(req.body.prompt);
 
-    if (agentResponse === "ERROR") {
+    if (agentResponse.message === "ERROR") {
         res.status(500).send("Failed to generate completion");
     } else {
-        res.status(200).send({message: agentResponse})
+        res.status(200).send(agentResponse);
     }
 });
 
