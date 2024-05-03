@@ -54,8 +54,9 @@ class AIAgent {
             name: "load_product_information",
             description: `Searches product information for a single product by its ID.
                     Returns the product information`,
-            func: async (input) => {
-                const data = fs.readFileSync("./info.txt");
+            func: async (productID) => {
+                const filePath = `${__dirname}/info/${productID}.txt`;
+                const data = fs.readFileSync(filePath);
                 return data.toString();
             }
         });
@@ -74,7 +75,11 @@ class AIAgent {
             description: `Retrieves a list of all the products the store has,
             returns the information in an array where there are two fields name and product ID`,
             func: (input) => {
-                return JSON.stringify([{name: "Squishable duck", productID: 1234}])
+                return JSON.stringify([
+                    {name: "Squishable duck", productID: 'x-123-h12'},
+                    {name: "Velvet Chair", productID: 's-378-jur'},
+                    {name: "Adidas Shoe", productID: 'w-789-kjl'}
+                ])
             }
         });
 
@@ -83,9 +88,7 @@ class AIAgent {
             description: `Instructs the client to load a given productID to their interface`,
             func: (productID) => {
                 console.log(productID);
-                if (productID === "1234") {
-                    this.productToLoad = "SquishableDuck";
-                }
+                this.productToLoad = productID;
             }
         })
 

@@ -1,3 +1,0 @@
-This is a yellow toy duck it is rubber and squishable. It is selling for $2.99 you may only call the function demo_squishing_duck
-
-FUNCTIONS:[demo_squishing_duck]

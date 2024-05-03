@@ -17,6 +17,7 @@ export const ChatPane = (props: IChatPaneProps) => {
     const [lastMessageTime, setLastMessageTime] = useState(0);
     const messages = useRef<ChatMessage[]>([]);
     const chatMessagesRef = useRef<HTMLDivElement>(null);
+    const currentProductId = useRef<string | null>(null);
 
     useEffect(() => {
         if (chatMessagesRef.current) {
@@ -39,6 +40,7 @@ export const ChatPane = (props: IChatPaneProps) => {
                     if (res.productToLoad) {
                         const ev = new CustomEvent("LOAD_NEW_PRODUCT", {detail: {id: res.productToLoad}});
                         console.log(`EMMITTING LOAD ${res.productToLoad}`);
+                        currentProductId.current = res.productToLoad;
                         document.dispatchEvent(ev);
                     }
                     messages.current.push({chatType: ChatType.AGENT, content: res.message});
@@ -49,9 +51,10 @@ export const ChatPane = (props: IChatPaneProps) => {
     };
 
     const callAI = async (prompt: string): Promise<AgentMessage> => {
+        const productContext = currentProductId.current !== null ? `The User has loaded a new product with ID ${currentProductId.current}` : "The User has not loaded any products"
         const body = {
             prompt: prompt,
-            productContext: "The User has loaded a new product with ID 123",
+            productContext: productContext,
             session_id: props.sessionId
         };
         try {
