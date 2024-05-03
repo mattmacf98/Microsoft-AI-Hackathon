@@ -29,11 +29,14 @@ export const Viewer = () => {
         // Create the Babylon.js engines
         engineRef.current = new Engine(canvasRef.current, true);
 
-        createScene();
-
         // Run the render loop
         engineRef.current?.runRenderLoop(() => {
             sceneRef.current?.render();
+        });
+
+        document.addEventListener('LOAD_NEW_PRODUCT', (event: any) => {
+            console.log(event.detail.id);
+            createScene(event.detail.id);
         });
 
         return () => {
@@ -48,7 +51,7 @@ export const Viewer = () => {
         babylonEngineRef.current?.refreshBehaveGraphEngine(container, sceneRef.current!);
     }
 
-    const createScene = async () => {
+    const createScene = async (id: string) => {
         // Create a scene
         sceneRef.current = new Scene(engineRef.current!);
         sceneRef.current!.clearColor = Color4.FromColor3(Color3.FromHexString("#c2d4e5"));
@@ -70,7 +73,7 @@ export const Viewer = () => {
         const light1 = new HemisphericLight("light1", new Vector3(0, 1, 0), sceneRef.current);
         light1.intensity = 1;
 
-        const container = await SceneLoader.LoadAssetContainerAsync("http://localhost:4000/download/SquishableDuck.glb", "", sceneRef.current, undefined, ".glb");
+        const container = await SceneLoader.LoadAssetContainerAsync(`http://localhost:4000/download/${id}.glb`, "", sceneRef.current, undefined, ".glb");
         container.addAllToScene();
         await startGraph(container);
     };

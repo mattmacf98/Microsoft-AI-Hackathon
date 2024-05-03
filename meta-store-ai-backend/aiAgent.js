@@ -24,6 +24,7 @@ class AIAgent {
         // initialize the chat history
         this.chatHistory = [];
         this.functionToExecute = null;
+        this.productToLoad = null;
         this.agentExecutor = this.buildAgentExecutor();
     }
 
@@ -68,7 +69,27 @@ class AIAgent {
             }
         });
 
-        const tools = [productsLookupTool, executeFunctionTool];
+        const getProductNamesTool = new DynamicTool({
+            name: "get_products",
+            description: `Retrieves a list of all the products the store has,
+            returns the information in an array where there are two fields name and product ID`,
+            func: (input) => {
+                return JSON.stringify([{name: "Squishable duck", productID: 1234}])
+            }
+        });
+
+        const loadProductTool = new DynamicTool({
+            name: "load_product",
+            description: `Instructs the client to load a given productID to their interface`,
+            func: (productID) => {
+                console.log(productID);
+                if (productID === "1234") {
+                    this.productToLoad = "SquishableDuck";
+                }
+            }
+        })
+
+        const tools = [productsLookupTool, executeFunctionTool, getProductNamesTool, loadProductTool];
         const modelWithFunctions = this.chatModel.bind({
             functions: tools.map((tool) => convertToOpenAIFunction(tool))
         });
@@ -105,16 +126,18 @@ class AIAgent {
     async executeAgent(prompt) {
         try {
             this.functionToExecute = null;
+            this.productToLoad = null;
             const result = await this.agentExecutor.invoke({ input: prompt, chat_history: this.chatHistory });
             this.chatHistory.push(new HumanMessage(prompt));
             this.chatHistory.push(new AIMessage(result.output));
             if (this.agentExecutor.returnIntermediateSteps) {
                 console.log(JSON.stringify(result.intermediateSteps, null, 2));
             }
-            return {message: result.output, functionToExecute: this.functionToExecute};
+            console.log({message: result.output, functionToExecute: this.functionToExecute, productToLoad: this.productToLoad});
+            return {message: result.output, functionToExecute: this.functionToExecute, productToLoad: this.productToLoad};
         } catch (e) {
             console.error(e);
-            return {message: "ERROR", functionToExecute: null};
+            return {message: "ERROR", functionToExecute: null, productToLoad: null};
         }
     }
 }

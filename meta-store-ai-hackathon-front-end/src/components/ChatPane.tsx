@@ -30,10 +30,16 @@ export const ChatPane = (props: IChatPaneProps) => {
             setLastMessageTime(Math.random());
             callAI(event.target.value)
                 .then(res => {
+                    console.log(res);
                     if (res.functionToExecute) {
                         const ev = new CustomEvent(`KHR_INTERACTIVITY:${res.functionToExecute}`, { detail: {} });
                         document.dispatchEvent(ev);
                         console.log(`INVOKING CUSTOM EVENT ${res.functionToExecute}`);
+                    }
+                    if (res.productToLoad) {
+                        const ev = new CustomEvent("LOAD_NEW_PRODUCT", {detail: {id: res.productToLoad}});
+                        console.log(`EMMITTING LOAD ${res.productToLoad}`);
+                        document.dispatchEvent(ev);
                     }
                     messages.current.push({chatType: ChatType.AGENT, content: res.message});
                     setLastMessageTime(Math.random());
@@ -70,7 +76,8 @@ export const ChatPane = (props: IChatPaneProps) => {
 
     interface AgentMessage {
         message: string,
-        functionToExecute?: string
+        functionToExecute?: string,
+        productToLoad?: string
     }
 
     return (
