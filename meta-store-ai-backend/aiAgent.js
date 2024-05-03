@@ -47,7 +47,7 @@ class AIAgent {
            
            you can then ONLY use the function names in the execute_product_function to invoke a function try to execute a function if it is applicable to the query
            
-           DO NOT include any links in your responses
+           DO NOT include any links in your responses, Keep you answers short.
         `;
 
         const productsLookupTool = new DynamicTool({
@@ -67,6 +67,7 @@ class AIAgent {
             found within the FUNCTIONS array for the product`,
             func: (functionName) => {
                 this.functionToExecute = functionName;
+                return "Success"
             }
         });
 
@@ -89,6 +90,7 @@ class AIAgent {
             func: (productID) => {
                 console.log(productID);
                 this.productToLoad = productID;
+                return "Success"
             }
         })
 
@@ -130,7 +132,7 @@ class AIAgent {
         try {
             this.functionToExecute = null;
             this.productToLoad = null;
-            const result = await this.agentExecutor.invoke({ input: prompt, chat_history: this.chatHistory });
+            const result = await this.agentExecutor.invoke({ input: prompt, chat_history: this.chatHistory});
             this.chatHistory.push(new HumanMessage(prompt));
             this.chatHistory.push(new AIMessage(result.output));
             if (this.agentExecutor.returnIntermediateSteps) {

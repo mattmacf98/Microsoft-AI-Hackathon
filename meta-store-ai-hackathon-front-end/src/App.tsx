@@ -18,18 +18,19 @@ export const App = () => {
   }, []);
 
   return (
-      <Container className={"app-container no-gutters"}>
-          <Row style={{height: "90%"}}>
-              <Col xs={9}>
+      <Container className={"no-gutters"}>
+          <Row style={{height: 500, margin: "0 auto", padding: 128}}>
+              <Col xs={9} style={{height: "inherit"}}>
                   <Viewer/>
               </Col>
               {
                   sessionId &&
-                  <Col xs={3}>
+                  <Col xs={3} style={{height: "inherit"}}>
                       <ChatPane sessionId={sessionId}/>
                   </Col>
               }
           </Row>
+
       </Container>
   );
 }
