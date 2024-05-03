@@ -70,7 +70,7 @@ export const Viewer = () => {
         const light1 = new HemisphericLight("light1", new Vector3(0, 1, 0), sceneRef.current);
         light1.intensity = 1;
 
-        const container = await SceneLoader.LoadAssetContainerAsync("./SquishableDuck.glb", "", sceneRef.current, undefined, ".glb");
+        const container = await SceneLoader.LoadAssetContainerAsync("http://localhost:4000/download/SquishableDuck.glb", "", sceneRef.current, undefined, ".glb");
         container.addAllToScene();
         await startGraph(container);
     };

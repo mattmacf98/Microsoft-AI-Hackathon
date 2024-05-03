@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors')
 const swagger = require('./swagger');
 const AiAgent = require("./aiAgent");
+const fs = require("fs");
 
 const PORT = process.env.PORT || 4000;
 const app = express();
@@ -74,6 +75,36 @@ app.post('/ai', async (req, res) => {
     } else {
         res.status(200).send(agentResponse);
     }
+});
+
+/**
+ * @openapi
+ * /download/{assetId}:
+ *   get:
+ *     description: Download an asset file by ID
+ *     parameters:
+ *       - in: path
+ *         name: assetId
+ *         description: ID of the asset to download
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: File corresponding to the asset ID
+ *         content:
+ *           application/octet-stream:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+app.get('/download/:assetId', async (req, res) => {
+    //TODO: replace with getting url from cloud storage
+    const filePath = `${__dirname}/${req.params['assetId']}`;
+    const { size } = fs.statSync(filePath);
+    const fileStream = fs.createReadStream(filePath);
+    res.setHeader("Content-Length", size);
+    fileStream.pipe(res);
 });
 
 swagger(app);
