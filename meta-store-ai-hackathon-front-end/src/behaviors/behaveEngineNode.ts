@@ -15,7 +15,7 @@ export interface IConfiguration {
 export interface IVariable {
     id: string;
     value?: any;
-    type: number;
+    initialValue: any
 }
 
 export interface IValue {
@@ -314,10 +314,11 @@ export class BehaveEngineNode {
                 this._values[val.id] = { ...this._values[val.id], type: typeIndex };
             } else {
                 //this node has not been evaluated yet, so we need to process it in order to get the output
-                const dependentValue = dependentNode.processNode();
-                typeIndex = dependentValue.type;
-                valueToReturn = dependentValue.value;
-                this._values[val.id] = { ...this._values[val.id], type: dependentValue.type };
+                const dependentNodeValues = dependentNode.processNode();
+                const dependentValue = dependentNodeValues[val.socket!];
+                typeIndex = dependentValue.type
+                valueToReturn = dependentValue.value
+                this._values[val.id] = {...this._values[val.id], type: dependentValue.type};
             }
             this.graphEngine.addEntryToValueEvaluationCache(`${val.node}-${val.socket}`, {
                 id: val.socket!,

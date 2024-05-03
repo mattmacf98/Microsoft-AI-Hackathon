@@ -44,6 +44,7 @@ export const Viewer = () => {
            const customEvents = babylonEngineRef.current?.customEvents.map(ce => ce.id) || [];
 
            let ce = closest(event.detail.id, customEvents);
+           console.log(ce);
            babylonEngineRef.current?.emitCustomEvent(`KHR_INTERACTIVITY:${ce}`, {});
         });
 

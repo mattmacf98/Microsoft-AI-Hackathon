@@ -1,18 +1,24 @@
 import { BehaveEngineNode, IBehaviourNodeProps, ICustomEvent, IFlow, IValue, IVariable } from './behaveEngineNode';
 import { IBehaveEngine, ICancelable } from './IBehaveEngine';
-import { Matrix, Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { easeFloat, easeFloat3, easeFloat4 } from './easingUtils';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 import { JsonPtrTrie } from './jsonPtrTrie';
 import { Node } from '@babylonjs/core/node';
-import {PointerEventTypes, PointerInfo} from '@babylonjs/core/Events/pointerEvents';
 import { Receive } from './nodes/customEvent/receive';
 import { Scene } from '@babylonjs/core/scene';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 import { Send } from './nodes/customEvent/send';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { PointerAnimateTo } from './nodes/pointer/pointerAnimateTo';
-import {ArcRotateCamera, AssetContainer, Ray, TargetCamera} from "@babylonjs/core";
+import {ArcRotateCamera, AssetContainer} from "@babylonjs/core";
+import {KHR_materials_variants} from "@babylonjs/loaders/glTF/2.0";
+import {PointerSet} from "./nodes/pointer/pointerSet";
+import {VariableSet} from "./nodes/variable/variableSet";
+import {VariableGet} from "./nodes/variable/variableGet";
+import {Add} from "./nodes/math/add";
+import {Equality} from "./nodes/math/equality";
+import {Select} from "./nodes/math/select";
 
 export interface ICustomEventListener {
     type: string;
@@ -220,6 +226,43 @@ export class BasicBehaveEngine implements IBehaveEngine {
             },
             'float3',
         );
+
+        this.registerJsonPointer(`/KHR_materials_variants/variant`, (path) => {
+            let root = this.world.glTFNodes[0];
+            while (root.parent) {
+                root = root.parent;
+            }
+            const variants = KHR_materials_variants.GetAvailableVariants(root);
+            const selectedVariant = KHR_materials_variants.GetLastSelectedVariant(root);
+            return variants.indexOf(selectedVariant as string);
+        }, (path, value) => {
+            let root = this.world.glTFNodes[0];
+            while (root.parent) {
+                root = root.parent;
+            }
+            const variants = KHR_materials_variants.GetAvailableVariants(root);
+            KHR_materials_variants.SelectVariant(root, variants[value]);
+        }, "int");
+
+        this.registerJsonPointer(
+            '/activeCamera/position',
+            (path) => {
+                const camPosition: Vector3 | undefined = this._scene.activeCamera?.position;
+                if (camPosition) {
+                    return [camPosition.x, camPosition.y, camPosition.z];
+                } else {
+                    return [0, 0, 0];
+                }
+            },
+            (path, value) => {
+                const activeCamera = this._scene.activeCamera;
+                if (activeCamera !== null) {
+                    activeCamera.position.set(value[0], value[1], value[2]);
+                    (activeCamera as ArcRotateCamera).rebuildAnglesAndRadius();
+                }
+            },
+            'float3',
+        );
     };
 
     public addNodeToScene = async (
@@ -324,8 +367,14 @@ export class BasicBehaveEngine implements IBehaveEngine {
 
     private registerKnownBehaviorNodes = () => {
         this.registerBehaveEngineNode('pointer/animateTo', PointerAnimateTo);
+        this.registerBehaveEngineNode('pointer/set', PointerSet);
         this.registerBehaveEngineNode('customEvent/send', Send);
         this.registerBehaveEngineNode('customEvent/receive', Receive);
+        this.registerBehaveEngineNode('variable/set', VariableSet);
+        this.registerBehaveEngineNode('variable/get', VariableGet);
+        this.registerBehaveEngineNode('math/add', Add);
+        this.registerBehaveEngineNode('math/eq', Equality);
+        this.registerBehaveEngineNode('math/select', Select)
     };
 
     private buildGlTFNodeLayout = (rootNode: Node): Node[] => {
