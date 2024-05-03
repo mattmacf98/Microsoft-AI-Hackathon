@@ -74,6 +74,11 @@ export class BasicBehaveEngine implements IBehaveEngine {
         return this._canvas;
     }
 
+
+    get customEvents(): ICustomEvent[] {
+        return this._customEvents;
+    }
+
     set world(value: any) {
         this._world = value;
     }

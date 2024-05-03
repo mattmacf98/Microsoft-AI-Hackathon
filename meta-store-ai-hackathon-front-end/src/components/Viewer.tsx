@@ -14,6 +14,7 @@ import {useEffect, useRef} from "react";
 import {GLTFLoader} from "@babylonjs/loaders/glTF/2.0";
 import {KHR_interactivity, KHR_INTERACTIVITY_EXTENSION_NAME} from "../loaderExtensions/KHR_interactivity";
 import {BasicBehaveEngine} from "../behaviors";
+import {closest} from "fastest-levenshtein";
 
 GLTFLoader.RegisterExtension(KHR_INTERACTIVITY_EXTENSION_NAME, (loader) => {
     return new KHR_interactivity(loader);
@@ -37,6 +38,13 @@ export const Viewer = () => {
         document.addEventListener('LOAD_NEW_PRODUCT', (event: any) => {
             console.log(event.detail.id);
             createScene(event.detail.id);
+        });
+
+        document.addEventListener('EXECUTE_FUNCTION', (event: any) => {
+           const customEvents = babylonEngineRef.current?.customEvents.map(ce => ce.id) || [];
+
+           let ce = closest(event.detail.id, customEvents);
+           babylonEngineRef.current?.emitCustomEvent(`KHR_INTERACTIVITY:${ce}`, {});
         });
 
         return () => {

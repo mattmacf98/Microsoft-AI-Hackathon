@@ -101,6 +101,10 @@ app.post('/ai', async (req, res) => {
 app.get('/download/:assetId', async (req, res) => {
     //TODO: replace with getting url from cloud storage
     const filePath = `${__dirname}/models/${req.params['assetId']}`;
+    if (!fs.existsSync(filePath)) {
+        res.status(404).send();
+        return;
+    }
     const { size } = fs.statSync(filePath);
     const fileStream = fs.createReadStream(filePath);
     res.setHeader("Content-Length", size);

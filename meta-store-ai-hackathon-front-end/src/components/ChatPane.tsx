@@ -33,13 +33,11 @@ export const ChatPane = (props: IChatPaneProps) => {
                 .then(res => {
                     console.log(res);
                     if (res.functionToExecute) {
-                        const ev = new CustomEvent(`KHR_INTERACTIVITY:${res.functionToExecute}`, { detail: {} });
+                        const ev = new CustomEvent("EXECUTE_FUNCTION", { detail: {id: res.functionToExecute} });
                         document.dispatchEvent(ev);
-                        console.log(`INVOKING CUSTOM EVENT ${res.functionToExecute}`);
                     }
                     if (res.productToLoad) {
                         const ev = new CustomEvent("LOAD_NEW_PRODUCT", {detail: {id: res.productToLoad}});
-                        console.log(`EMMITTING LOAD ${res.productToLoad}`);
                         currentProductId.current = res.productToLoad;
                         document.dispatchEvent(ev);
                     }
