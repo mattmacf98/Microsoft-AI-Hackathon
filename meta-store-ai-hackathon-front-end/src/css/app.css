@@ -3,6 +3,21 @@
     padding-left: 0;
 }
 
+.app-container {
+    margin: 128px;
+}
+
+html, body, #root {
+    background: #f8f8fd;
+}
+
+.agent-interaction-row {
+    border-radius: 20px;
+    box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.2);
+    height: 500px;
+    margin: 0 auto;
+}
+
 .chat-pane-container {
     background: #ffffff;
     height: 100%;
@@ -13,7 +28,7 @@
 }
 
 .chat-messages {
-    height: 80%;
+    height: 90%;
     overflow-y: scroll;
     margin-bottom: 8px;
 }

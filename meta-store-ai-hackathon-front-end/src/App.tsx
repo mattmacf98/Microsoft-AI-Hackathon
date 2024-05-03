@@ -3,6 +3,7 @@ import {Col, Container, Row} from "react-bootstrap";
 import {Viewer} from "./components/Viewer";
 import {ChatPane} from "./components/ChatPane";
 import "./css/app.css";
+import {NavigationBar} from "./components/NavigationBar";
 
 export const App = () => {
   const [sessionId, setSessionId] = useState<string | undefined>(undefined);
@@ -18,19 +19,22 @@ export const App = () => {
   }, []);
 
   return (
-      <Container className={"no-gutters"}>
-          <Row style={{height: 500, margin: "0 auto", padding: 128}}>
-              <Col xs={9} style={{height: "inherit"}}>
-                  <Viewer/>
-              </Col>
-              {
-                  sessionId &&
-                  <Col xs={3} style={{height: "inherit"}}>
-                      <ChatPane sessionId={sessionId}/>
+      <>
+          <NavigationBar/>
+          <Container className={"no-gutters app-container"}>
+              <Row style={{height: 600, margin: "0 auto"}} className={"agent-interaction-row"}>
+                  <Col xs={9} style={{height: "inherit"}}>
+                      <Viewer/>
                   </Col>
-              }
-          </Row>
+                  {
+                      sessionId &&
+                      <Col xs={3} style={{height: "inherit"}}>
+                          <ChatPane sessionId={sessionId}/>
+                      </Col>
+                  }
+              </Row>
+          </Container>
+      </>
 
-      </Container>
   );
 }
