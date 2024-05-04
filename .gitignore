@@ -2,5 +2,6 @@
 **/node_modules
 **/package-lock.json
 *.env
-IntroWalkThrough/Deploy/azuredeploy.parameters.json
+**/azuredeploy.parameters.json
 screenshots/
+**/.DS_Store

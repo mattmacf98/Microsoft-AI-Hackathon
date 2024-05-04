@@ -108,6 +108,7 @@ app.get('/download/:assetId', async (req, res) => {
     const { size } = fs.statSync(filePath);
     const fileStream = fs.createReadStream(filePath);
     res.setHeader("Content-Length", size);
+    res.setHeader("Cache-Control", "public, max-age=86400");
     fileStream.pipe(res);
 });
 

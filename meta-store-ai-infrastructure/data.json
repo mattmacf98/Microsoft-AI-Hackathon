@@ -1,0 +1,23 @@
+[
+  {
+    "id": "x-123-h12",
+    "name": "Yellow Rubber Duck",
+    "price": 2.99,
+    "functions": ["demo_squishing_duck"],
+    "info": "This is a yellow toy duck it is rubber and squishable. It is selling for $2.99 you may only call the function demo_squishing_duck"
+  },
+  {
+    "id": "w-789-kjl",
+    "name": "Adidas Shoe",
+    "price": 59.95,
+    "functions": ["look_at_insole", "show_next_variant"],
+    "info": "This is a premium adidas blue shoe, it costs $59.95 and can be worn in any weather. It is guaranteed to make you run faster or your money back! There are an infinite amount of different variants you can see by invoking show_next_variant there is also a patented super comfy insole that should be highlighted that can be shown to the user by invoking look_at_insole"
+  },
+  {
+    "id": "s-378-jur",
+    "name": "Vintage Velvet Love Seat",
+    "price": 499,
+    "functions": [],
+    "info": "This is a vintage velvet love seat, it costs $499, be sure to talk about the ergonomic support the chair offers making it a great chair for any living room."
+  }
+]

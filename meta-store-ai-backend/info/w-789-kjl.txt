@@ -1,5 +1,0 @@
-This is a premium adidas blue shoe, it costs $59.95 and can be worn in any weather. It is guaranteed to make you run faster or your money back! There are 3
-different variants you can see by invoking show_next_variant there is also a patented super comfy insole that should be highlighted that can be shown to
-the user by invoking look_at_insole
-
-FUNCTIONS:[look_at_insole, show_next_variant]

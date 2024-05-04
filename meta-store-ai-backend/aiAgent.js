@@ -1,5 +1,6 @@
 require('dotenv').config();
 const fs = require('fs');
+const { MongoClient } = require('mongodb');
 const { AgentExecutor } = require("langchain/agents");
 const { OpenAIFunctionsAgentOutputParser } = require("langchain/agents/openai/output_parser");
 const { AzureChatOpenAI} = require("@langchain/openai");
@@ -12,6 +13,7 @@ const { formatToOpenAIFunctionMessages } = require("langchain/agents/format_scra
 
 class AIAgent {
     constructor() {
+        this.dbClient = new MongoClient(process.env.MONGODB_URI);
         this.chatModel = new AzureChatOpenAI(
             {
                 openAIApiKey: process.env.AZURE_OPENAI_API_KEY,
@@ -38,26 +40,18 @@ class AIAgent {
     
             If you don't know the answer to a question, respond with "I don't know."
             
-            You will receive follow up messages about a product a user is looking at. The information will also contain a FUNCTIONS section which you can invoke to demonstrate some product feature
-            
-            For example, a loaded product info might look like below
-            
-            User has loaded our blue velvet chair, it has hand crafted wooden legs made by artisan woodworkers
-            FUNCTIONS: [show_red_variant, show_chair_legs] 
-           
-           you can then ONLY use the function names in the execute_product_function to invoke a function try to execute a function if it is applicable to the query
-           
-           DO NOT include any links in your responses, Keep you answers short.
         `;
 
         const productsLookupTool = new DynamicTool({
-            name: "load_product_information",
-            description: `Searches product information for a single product by its ID.
-                    Returns the product information`,
+            name: "get_product_information",
+            description: `Retrieves product information for a single product by its productID.
+                    Returns the product information in JSON form`,
             func: async (productID) => {
-                const filePath = `${__dirname}/info/${productID}.txt`;
-                const data = fs.readFileSync(filePath);
-                return data.toString();
+                const db = this.dbClient.db("meta_store_ai");
+                const products = db.collection("products");
+                const doc = await products.findOne({"id": productID});
+
+                return doc ? JSON.stringify(doc, null, '\t') : null;
             }
         });
 
@@ -74,11 +68,11 @@ class AIAgent {
         const getProductNamesTool = new DynamicTool({
             name: "get_products",
             description: `Retrieves a list of all the products the store has,
-            returns the information in an array where there are two fields name and product ID`,
+            returns the information in an array where there are two fields name and productID use productID for further querying`,
             func: (input) => {
                 return JSON.stringify([
-                    {name: "Squishable duck", productID: 'x-123-h12'},
-                    {name: "Velvet Chair", productID: 's-378-jur'},
+                    {name: "Yellow Rubber Duck", productID: 'x-123-h12'},
+                    {name: "Vintage Velvet Love Seat", productID: 's-378-jur'},
                     {name: "Adidas Shoe", productID: 'w-789-kjl'}
                 ])
             }
@@ -88,7 +82,6 @@ class AIAgent {
             name: "load_product",
             description: `Instructs the client to load a given productID to their interface`,
             func: (productID) => {
-                console.log(productID);
                 this.productToLoad = productID;
                 return "Success"
             }
