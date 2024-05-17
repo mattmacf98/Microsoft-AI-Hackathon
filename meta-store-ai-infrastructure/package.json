@@ -2,7 +2,7 @@
   "name": "meta-store-ai-infrastructure",
   "version": "1.0.0",
   "description": "",
-  "main": "bulkDataUplaod.js",
+  "main": "bulkDataUpload.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mongodb": "6.3.0",
-    "dotenv": "16.4.4"
+    "@azure/storage-blob": "^12.18.0",
+    "dotenv": "16.4.4",
+    "mongodb": "6.3.0"
   }
 }

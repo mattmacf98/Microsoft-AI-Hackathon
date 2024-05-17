@@ -71,3 +71,21 @@ resource mongoFirewallRulesAllowAll 'Microsoft.DocumentDB/mongoClusters/firewall
     endIpAddress: '255.255.255.255'
   }
 }
+
+param storageAccountName string = 'metastoreaistorage'
+param skuName string = 'Standard_LRS'
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+  name: storageAccountName
+  location: location
+  sku: {
+    name: skuName
+  }
+  kind: 'StorageV2'
+  properties: {}
+}
+
+
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
+  name: '${storageAccount.name}/default'
+}

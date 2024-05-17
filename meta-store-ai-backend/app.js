@@ -1,10 +1,14 @@
 require('dotenv').config();
 const { AIMessage } = require("@langchain/core/messages");
+const { BlobServiceClient } = require("@azure/storage-blob");
 const express = require('express');
 const cors = require('cors')
 const swagger = require('./swagger');
 const AiAgent = require("./aiAgent");
-const fs = require("fs");
+
+const connStr = process.env.STORAGE_CONNECTION_STRING;
+const blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
+const containerName = "default";
 
 const PORT = process.env.PORT || 4000;
 const app = express();
@@ -99,17 +103,15 @@ app.post('/ai', async (req, res) => {
  *               format: binary
  */
 app.get('/download/:assetId', async (req, res) => {
-    //TODO: replace with getting url from cloud storage
-    const filePath = `${__dirname}/models/${req.params['assetId']}`;
-    if (!fs.existsSync(filePath)) {
-        res.status(404).send();
-        return;
-    }
-    const { size } = fs.statSync(filePath);
-    const fileStream = fs.createReadStream(filePath);
-    res.setHeader("Content-Length", size);
+    const assetId = req.params['assetId'];
+
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blobClient = containerClient.getBlobClient(assetId);
+
+    const downloadBlobResponse = await blobClient.download();
+
     res.setHeader("Cache-Control", "public, max-age=86400");
-    fileStream.pipe(res);
+    downloadBlobResponse.readableStreamBody.pipe(res);
 });
 
 swagger(app);
