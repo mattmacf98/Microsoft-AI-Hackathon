@@ -15,6 +15,7 @@ import {GLTFLoader} from "@babylonjs/loaders/glTF/2.0";
 import {KHR_interactivity, KHR_INTERACTIVITY_EXTENSION_NAME} from "../loaderExtensions/KHR_interactivity";
 import {BasicBehaveEngine} from "../behaviors";
 import {closest} from "fastest-levenshtein";
+import {META_STORE_AI_BACKEND_URL} from "../App";
 
 GLTFLoader.RegisterExtension(KHR_INTERACTIVITY_EXTENSION_NAME, (loader) => {
     return new KHR_interactivity(loader);
@@ -82,7 +83,7 @@ export const Viewer = () => {
         const light1 = new HemisphericLight("light1", new Vector3(0, 1, 0), sceneRef.current);
         light1.intensity = 1;
 
-        const container = await SceneLoader.LoadAssetContainerAsync(`http://localhost:4000/download/${id}.glb`, "", sceneRef.current, undefined, ".glb");
+        const container = await SceneLoader.LoadAssetContainerAsync(`${META_STORE_AI_BACKEND_URL}/download/${id}.glb`, "", sceneRef.current, undefined, ".glb");
         container.addAllToScene();
         await startGraph(container);
     };

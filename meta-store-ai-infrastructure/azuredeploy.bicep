@@ -20,6 +20,9 @@ many resources.
 @maxLength(17)
 param name string = 'dg${uniqueString(resourceGroup().id)}'
 
+@description('Azure Container Registry SKU. Defaults to **Basic**')
+param acrSku string = 'Basic'
+
 @description('MongoDB vCore user Name. No dashes.')
 param mongoDbUserName string
 
@@ -88,4 +91,111 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
 
 resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
   name: '${storageAccount.name}/default'
+}
+
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
+  name: replace('${name}registry','-', '')
+  location: location
+  sku: {
+    name: acrSku
+  }
+  properties: {
+    adminUserEnabled: true
+  }
+}
+
+/* *************************************************************** */
+/* Logging and instrumentation */
+/* *************************************************************** */
+
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
+  name: '${name}-loganalytics'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
+  }
+}
+
+/* *************************************************************** */
+/* Container environment - Azure Container App Environment  */
+/* *************************************************************** */
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
+  name: '${name}-containerappenv'
+  location: location
+  properties: {
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: logAnalytics.properties.customerId
+        sharedKey: logAnalytics.listKeys().primarySharedKey
+      }
+    }
+    workloadProfiles: []
+    infrastructureResourceGroup: 'ME_${resourceGroup().name}'
+  }
+}
+
+/* *************************************************************** */
+/* Back-end API App Application - Azure Container App */
+/* deploys default hello world */
+/* *************************************************************** */
+resource backendApiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
+  name: '${name}-api'
+  location: location
+  properties: {
+    environmentId: containerAppEnvironment.id
+    configuration: {
+      ingress: {
+        external: true
+        targetPort: 4000
+        allowInsecure: false
+        traffic: [
+          {
+            latestRevision: true
+            weight: 100
+          }
+        ]
+        corsPolicy: {
+          allowCredentials: false
+          allowedHeaders: [
+            '*'
+          ]
+          allowedOrigins: [
+            '*'
+          ]
+        }
+      }
+      registries: [
+        {
+          server: containerRegistry.name
+          username: containerRegistry.properties.loginServer
+          passwordSecretRef: 'container-registry-password'
+        }
+      ]
+      secrets: [
+        {
+          name: 'container-registry-password'
+          value: containerRegistry.listCredentials().passwords[0].value
+        }
+      ]
+    }
+    template: {
+      containers: [
+        {
+          name: 'hello-world'
+          image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          resources: {
+            cpu: 1
+            memory: '2Gi'
+          }
+        }
+      ]
+      scale: {
+        minReplicas: 1
+        maxReplicas: 1
+      }
+    }
+  }
 }

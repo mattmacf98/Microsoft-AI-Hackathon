@@ -1,5 +1,6 @@
 import "../css/app.css";
 import {useEffect, useRef, useState} from "react";
+import {META_STORE_AI_BACKEND_URL} from "../App";
 
 enum ChatType {
     USER,
@@ -56,7 +57,7 @@ export const ChatPane = (props: IChatPaneProps) => {
             session_id: props.sessionId
         };
         try {
-            const result = await fetch("http://localhost:4000/ai", {
+            const result = await fetch(`${META_STORE_AI_BACKEND_URL}/ai`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
