@@ -19,5 +19,12 @@
     "price": 499,
     "functions": [],
     "info": "This is a vintage velvet love seat, it costs $499, be sure to talk about the ergonomic support the chair offers making it a great chair for any living room."
+  },
+  {
+    "id": "g-489-kui",
+    "name": "Antique Camera",
+    "price": 299,
+    "functions": [],
+    "info": "This is an antique camera from the 1800s. It costs $299. The tripod base is made of reclaimed oak wood. The camera itself has 3 focus lenses and a shutter time of 5 seconds."
   }
 ]

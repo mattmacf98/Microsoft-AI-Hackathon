@@ -59,6 +59,12 @@ export const Viewer = () => {
     const startGraph = async (container: AssetContainer) => {
         babylonEngineRef.current = new BasicBehaveEngine(60, sceneRef.current!);
         babylonEngineRef.current?.refreshBehaveGraphEngine(container, sceneRef.current!);
+
+        babylonEngineRef.current?.addCustomEventListener("KHR_INTERACTIVITY:send_to_agent", (data: any) => {
+            console.log(data.detail.message);
+            const ev = new CustomEvent("CALL_AGENT", { detail: {prompt: data.detail.message, systemMessage: data.detail.message} });
+            document.dispatchEvent(ev);
+        });
     }
 
     const createScene = async (id: string) => {

@@ -1,6 +1,6 @@
 import { BehaveEngineNode, IBehaviourNodeProps, ICustomEvent, IFlow, IValue, IVariable } from './behaveEngineNode';
 import { IBehaveEngine, ICancelable } from './IBehaveEngine';
-import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import {Matrix, Vector3} from '@babylonjs/core/Maths/math.vector';
 import { easeFloat, easeFloat3, easeFloat4 } from './easingUtils';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 import { JsonPtrTrie } from './jsonPtrTrie';
@@ -11,7 +11,7 @@ import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 import { Send } from './nodes/customEvent/send';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { PointerAnimateTo } from './nodes/pointer/pointerAnimateTo';
-import {ArcRotateCamera, AssetContainer} from "@babylonjs/core";
+import {ArcRotateCamera, AssetContainer, PointerEventTypes, TargetCamera} from "@babylonjs/core";
 import {KHR_materials_variants} from "@babylonjs/loaders/glTF/2.0";
 import {PointerSet} from "./nodes/pointer/pointerSet";
 import {VariableSet} from "./nodes/variable/variableSet";
@@ -19,6 +19,7 @@ import {VariableGet} from "./nodes/variable/variableGet";
 import {Add} from "./nodes/math/add";
 import {Equality} from "./nodes/math/equality";
 import {Select} from "./nodes/math/select";
+import {OnSelect} from "./nodes/node/OnSelect";
 
 export interface ICustomEventListener {
     type: string;
@@ -263,6 +264,26 @@ export class BasicBehaveEngine implements IBehaveEngine {
             },
             'float3',
         );
+
+        this.registerJsonPointer(
+            '/activeCamera/lookAt',
+            (path) => {
+                const camTarget: Vector3 | undefined = (this._scene.activeCamera as TargetCamera).target;
+                if (camTarget) {
+                    return [-1*camTarget.x, camTarget.y, camTarget.z];
+                } else {
+                    return [0, 0, 0];
+                }
+            },
+            (path, value) => {
+                const activeCamera: TargetCamera = this._scene.activeCamera as TargetCamera;
+                if (activeCamera !== null) {
+                    activeCamera.target.set(-1*value[0], value[1], value[2]);
+                    (activeCamera as ArcRotateCamera).rebuildAnglesAndRadius();
+                }
+            },
+            'float3',
+        );
     };
 
     public addNodeToScene = async (
@@ -365,6 +386,48 @@ export class BasicBehaveEngine implements IBehaveEngine {
         }
     };
 
+    public addNodeClickedListener = (nodeIndex: number, callback: (localHitLocation: number[], hitNodeIndex: number) => void): void => {
+        this.world.glTFNodes[nodeIndex].metadata = this.world.glTFNodes[nodeIndex].metadata || {};
+        this.world.glTFNodes[nodeIndex].metadata.onSelectCallback = callback;
+
+        this._scene.onPointerObservable.add(async (pointerInfo) => {
+            if (pointerInfo.type === PointerEventTypes.POINTERPICK) {
+                const ray = this._scene.createPickingRay(
+                    this._scene.pointerX,
+                    this._scene.pointerY,
+                    Matrix.Identity(),
+                    this._scene.activeCamera,
+                );
+
+                const hit = this._scene.pickWithRay(ray);
+                if (hit == null || hit.pickedMesh == null) {
+                    return;
+                }
+                const targetMesh: AbstractMesh = this.world.glTFNodes[nodeIndex];
+                if (targetMesh !== hit.pickedMesh && targetMesh.id !== hit.pickedMesh.id && (!targetMesh.getChildMeshes(false).includes(hit.pickedMesh))) {
+                    return;
+                } else if (targetMesh.getChildMeshes(false).includes(hit.pickedMesh) && hit.pickedMesh.metadata.onSelectCallback != null) {
+                    return;
+                } else {
+                    const pos = [hit.pickedMesh.position.x, hit.pickedMesh.position.y, hit.pickedMesh.position.z];
+                    const hitNodeIndex = this.world.glTFNodes.findIndex((value: { uniqueId: number; }) => value.uniqueId === hit.pickedMesh!.uniqueId)
+                    callback(pos, hitNodeIndex);
+                }
+            }
+        });
+    }
+
+    public alertParentOnSelect = (localHitLocation: number[], hitNodeIndex: number, childNodeIndex: number): void => {
+        let curNode = this.world.glTFNodes[childNodeIndex].parent;
+        while (curNode !== null && (curNode.metadata == null || curNode.metadata.onSelectCallback == null)) {
+            curNode = curNode.parent;
+        }
+
+        if (curNode !== null) {
+            curNode.metadata.onSelectCallback(localHitLocation, hitNodeIndex);
+        }
+    }
+
     private registerKnownBehaviorNodes = () => {
         this.registerBehaveEngineNode('pointer/animateTo', PointerAnimateTo);
         this.registerBehaveEngineNode('pointer/set', PointerSet);
@@ -374,7 +437,8 @@ export class BasicBehaveEngine implements IBehaveEngine {
         this.registerBehaveEngineNode('variable/get', VariableGet);
         this.registerBehaveEngineNode('math/add', Add);
         this.registerBehaveEngineNode('math/eq', Equality);
-        this.registerBehaveEngineNode('math/select', Select)
+        this.registerBehaveEngineNode('math/select', Select);
+        this.registerBehaveEngineNode('node/OnSelect', OnSelect);
     };
 
     private buildGlTFNodeLayout = (rootNode: Node): Node[] => {

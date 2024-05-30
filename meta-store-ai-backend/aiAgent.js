@@ -73,7 +73,8 @@ class AIAgent {
                 return JSON.stringify([
                     {name: "Yellow Rubber Duck", productID: 'x-123-h12'},
                     {name: "Vintage Velvet Love Seat", productID: 's-378-jur'},
-                    {name: "Adidas Shoe", productID: 'w-789-kjl'}
+                    {name: "Adidas Shoe", productID: 'w-789-kjl'},
+                    {name: "Antique Camera", productID: 'g-489-kui'},
                 ])
             }
         });

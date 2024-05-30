@@ -5,7 +5,7 @@ import {ChatPane} from "./components/ChatPane";
 import "./css/app.css";
 import {NavigationBar} from "./components/NavigationBar";
 
-export const META_STORE_AI_BACKEND_URL="https://dgwvmsa3ac6xbn4-api.calmglacier-792968ee.eastus.azurecontainerapps.io";
+export const META_STORE_AI_BACKEND_URL="http://localhost:4000";
 
 export const App = () => {
   const [sessionId, setSessionId] = useState<string | undefined>(undefined);

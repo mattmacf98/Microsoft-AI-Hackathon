@@ -26,36 +26,48 @@ export const ChatPane = (props: IChatPaneProps) => {
         }
     }, [lastMessageTime])
 
+    async function handleCallAgent(event: any) {
+        const body: CallAIRequest = {
+            prompt: event.detail.prompt,
+            productContext: event.detail.systemMessage,
+            session_id: props.sessionId
+        };
+
+        const result: AgentMessage = await callAI(body);
+        handleAIMessage(result);
+    }
+
+    useEffect(() => {
+        document.addEventListener('CALL_AGENT', handleCallAgent);
+
+        return () => {
+            document.removeEventListener('CALL_AGENT', handleCallAgent);
+        }
+    }, []);
+
     const handleKeyPress = (event: any) => {
         if (event.key === 'Enter') {
             messages.current.push({chatType: ChatType.USER, content: event.target.value});
             setLastMessageTime(Math.random());
-            callAI(event.target.value)
+            userMessageAI(event.target.value)
                 .then(res => {
-                    console.log(res);
-                    if (res.functionToExecute) {
-                        const ev = new CustomEvent("EXECUTE_FUNCTION", { detail: {id: res.functionToExecute} });
-                        document.dispatchEvent(ev);
-                    }
-                    if (res.productToLoad) {
-                        const ev = new CustomEvent("LOAD_NEW_PRODUCT", {detail: {id: res.productToLoad}});
-                        currentProductId.current = res.productToLoad;
-                        document.dispatchEvent(ev);
-                    }
-                    messages.current.push({chatType: ChatType.AGENT, content: res.message});
-                    setLastMessageTime(Math.random());
+                    handleAIMessage(res);
                 })
             event.target.value = "";
         }
     };
 
-    const callAI = async (prompt: string): Promise<AgentMessage> => {
+    const userMessageAI = async (prompt: string): Promise<AgentMessage> => {
         const productContext = currentProductId.current !== null ? `The User has loaded a new product with ID ${currentProductId.current}` : "The User has not loaded any products"
-        const body = {
+        const body: CallAIRequest = {
             prompt: prompt,
             productContext: productContext,
             session_id: props.sessionId
         };
+        return callAI(body);
+    }
+
+    const callAI = async (body: CallAIRequest): Promise<AgentMessage> => {
         try {
             const result = await fetch(`${META_STORE_AI_BACKEND_URL}/ai`, {
                 method: "POST",
@@ -76,10 +88,31 @@ export const ChatPane = (props: IChatPaneProps) => {
         }
     }
 
+    const handleAIMessage = (message: AgentMessage) => {
+        console.log(message);
+        if (message.functionToExecute) {
+            const ev = new CustomEvent("EXECUTE_FUNCTION", { detail: {id: message.functionToExecute} });
+            document.dispatchEvent(ev);
+        }
+        if (message.productToLoad) {
+            const ev = new CustomEvent("LOAD_NEW_PRODUCT", {detail: {id: message.productToLoad}});
+            currentProductId.current = message.productToLoad;
+            document.dispatchEvent(ev);
+        }
+        messages.current.push({chatType: ChatType.AGENT, content: message.message});
+        setLastMessageTime(Math.random());
+    }
+
     interface AgentMessage {
         message: string,
         functionToExecute?: string,
         productToLoad?: string
+    }
+
+    interface CallAIRequest {
+        prompt: string,
+        productContext: string,
+        session_id: string
     }
 
     return (
