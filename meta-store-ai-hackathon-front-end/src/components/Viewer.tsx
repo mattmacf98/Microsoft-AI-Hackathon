@@ -1,5 +1,5 @@
 import {
-    ArcRotateCamera, AssetContainer,
+    ArcRotateCamera, AssetContainer, BoundingInfo,
     Color3,
     Color4,
     Engine,
@@ -16,6 +16,7 @@ import {KHR_interactivity, KHR_INTERACTIVITY_EXTENSION_NAME} from "../loaderExte
 import {BasicBehaveEngine} from "../behaviors";
 import {closest} from "fastest-levenshtein";
 import {META_STORE_AI_BACKEND_URL} from "../App";
+import {AdvancedDynamicTexture, Button, Control, Image} from "@babylonjs/gui";
 
 GLTFLoader.RegisterExtension(KHR_INTERACTIVITY_EXTENSION_NAME, (loader) => {
     return new KHR_interactivity(loader);
@@ -44,8 +45,14 @@ export const Viewer = () => {
         document.addEventListener('EXECUTE_FUNCTION', (event: any) => {
            const customEvents = babylonEngineRef.current?.customEvents.map(ce => ce.id) || [];
 
-           let ce = closest(event.detail.id, customEvents);
-           console.log(ce);
+           let ce = closest(event.detail.id, [...customEvents, "toggle_bounding_box"]);
+
+           if (ce === "toggle_bounding_box") {
+               if (sceneRef.current) {
+                   sceneRef.current.meshes[0].showBoundingBox = !sceneRef.current.meshes[0].showBoundingBox;
+               }
+           }
+
            babylonEngineRef.current?.emitCustomEvent(`KHR_INTERACTIVITY:${ce}`, {});
         });
 
@@ -91,6 +98,41 @@ export const Viewer = () => {
 
         const container = await SceneLoader.LoadAssetContainerAsync(`${META_STORE_AI_BACKEND_URL}/download/${id}.glb`, "", sceneRef.current, undefined, ".glb");
         container.addAllToScene();
+
+        let childMeshes = container.meshes[0].getChildMeshes();
+
+        let min = childMeshes[0].getBoundingInfo().boundingBox.minimumWorld;
+        let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
+
+        for(let i=0; i<childMeshes.length; i++){
+            let meshMin = childMeshes[i].getBoundingInfo().boundingBox.minimumWorld;
+            let meshMax = childMeshes[i].getBoundingInfo().boundingBox.maximumWorld;
+
+            min = Vector3.Minimize(min, meshMin);
+            max = Vector3.Maximize(max, meshMax);
+        }
+
+        container.meshes[0].setBoundingInfo(new BoundingInfo(min, max));
+
+        const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+        // Create an image element
+        const boundingBoxBtn = Button.CreateImageOnlyButton("", "box.png");
+        boundingBoxBtn.width = "40px";
+        boundingBoxBtn.height = "40px";
+        boundingBoxBtn.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+        boundingBoxBtn.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+        boundingBoxBtn.top = "10px";
+        boundingBoxBtn.left = "-10px";
+
+        boundingBoxBtn.onPointerClickObservable.add(() => {
+           container.meshes[0].showBoundingBox = !container.meshes[0].showBoundingBox;
+        });
+
+        // Add the image to the GUI
+        advancedTexture.addControl(boundingBoxBtn);
+
+
         await startGraph(container);
     };
 

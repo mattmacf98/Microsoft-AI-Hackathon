@@ -105,13 +105,19 @@ app.post('/ai', async (req, res) => {
 app.get('/download/:assetId', async (req, res) => {
     const assetId = req.params['assetId'];
 
-    const containerClient = blobServiceClient.getContainerClient(containerName);
-    const blobClient = containerClient.getBlobClient(assetId);
+    try {
+        const containerClient = blobServiceClient.getContainerClient(containerName);
+        const blobClient = containerClient.getBlobClient(assetId);
 
-    const downloadBlobResponse = await blobClient.download();
+        const downloadBlobResponse = await blobClient.download();
 
-    res.setHeader("Cache-Control", "public, max-age=86400");
-    downloadBlobResponse.readableStreamBody.pipe(res);
+        res.setHeader("Cache-Control", "public, max-age=86400");
+        downloadBlobResponse.readableStreamBody.pipe(res);
+    } catch (exception) {
+        console.error(exception);
+        res.status(500).send();
+    }
+
 });
 
 swagger(app);
